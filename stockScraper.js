@@ -6,3 +6,7 @@ app.set('port', (process.env.PORT || 5000));
 app.get("/stockScraper.js", function (req, res) {
     console.log("cmon");
 });
+
+app.listen(app.get('port'), function() {
+  console.log('Node app is running on port', app.get('port'));
+});
