@@ -7,19 +7,22 @@ var cheerio = require('cheerio');
 
 app.set('port', (process.env.PORT || 5000));
 
-app.get("/stockScraper.js", function (req, res) {
-    console.log("cmon");
-    request("https://finance.yahoo.com/quote/NBY/key-statistics?p=NBY", function(error, response, html){
+function getDebt(symbol) {
+     request("https://finance.yahoo.com/quote/"+symbol+"/key-statistics?p="+symbol, function(error, response, html){
         if(!error){
-            console.log("cmon");
             var $ = cheerio.load(html);
 
             var priceSpan = $('span[data-reactid = "35"]');
-            console.log("cmon");
-            console.log(priceSpan.text());
+            return priceSpan.text().replace(/[^\d.-]/g,'');
 
         }
     });
+}
+
+
+
+app.get("/stockScraper.js", function (req, res) {
+    
 });
 
 app.listen(app.get('port'), function() {
