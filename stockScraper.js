@@ -10,9 +10,10 @@ var companies = [];
 
 // ccb = compcallback
 
-function filterCompanies(ccb) {
+function filterCompanies(ccb) { //CHANGE THIS TO NOT BE BASED OFF OF ASYNC.FILTER
     var ret = [];   
     var relevantValues = ["Total Debt", "Total Debt/Equity"];
+    console.log("filter companies called");
     async.filter(companies, function(comp, callback) {
         request("https://finance.yahoo.com/quote/"+comp.tag+"/key-statistics?p="+comp.tag, function(error, response, html) {
             if(!error){
@@ -38,7 +39,9 @@ function filterCompanies(ccb) {
                 }
                 callback(null, true);
 
-            } 
+            } else {
+                console.log('error');
+            }
         });
     }, function(error, results) {
         ccb(error, ret);
@@ -46,15 +49,30 @@ function filterCompanies(ccb) {
          
 }
 
-function initiateSymbols(ccb) { //will have initiate which reads from json and scrape which will read from nasdaq or w/e
-    var tempCompanies = [{tag:"AAPL"}, {tag:"NBY"}];
+function scrapeSymbols(ccb) { //will have initiate which reads from json and scrape which will read from nasdaq or w/e
+    /*var tempCompanies = [{tag:"ALP^Q"}, {tag:"NBY"}];
     console.log("finished inti");
-    ccb(null, tempCompanies);
+    ccb(null, tempCompanies);*/
+    var ret =[];
+    var tempTag;
+    console.log("scrape symbols called");
+    request("http://www.nasdaq.com/screening/companies-by-region.aspx?region=North+America&pagesize=10000", function(error, response, html) {
+        if (!error) {
+            var $ = cheerio.load(html);
+            
+            $("h3").each(function(counter, h3) {
+                tempTag = $("a", h3).text().trim();
+                ret.push({tag:tempTag});
+            });
+        }
+        ccb(error, ret);
+        filterCompanies(ccb);
+    });
+    
 }
 
 function main() {
-    initiateSymbols(compCallback);
-    filterCompanies(compCallback);
+    scrapeSymbols(compCallback); //scrapeSymbols calls filter companies
 }
 
 function compCallback(error, newCompanies) { // only sets companies as new companies if no error
