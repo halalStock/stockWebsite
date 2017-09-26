@@ -7,10 +7,10 @@ var cheerio = require('cheerio');
 var async = require('async');
 app.set('port', (process.env.PORT || 5000));
 var debtFree = [];
-
+var pg = require('pg');
 // ccb = compcallback
 
-function filterCompanies(ccb, companies) {   
+/*function filterCompanies(ccb, companies) {   // SHOULD BE CALLED RESEARCH COMPANY
     var relevantValues = ["Total Debt", "Total Debt/Equity"];
     console.log("filter companies called");
     async.filter(companies, function(comp, callback) {
@@ -51,46 +51,7 @@ function filterCompanies(ccb, companies) {
         ccb(error);
     });
 
-    
-    /*async.series([
-        function(callback) {
-            for (var i = 0; i < companies.length;i++) {
-                var comp = companies[i];
-                request("https://finance.yahoo.com/quote/"+comp.tag+"/key-statistics?p="+comp.tag, function(error, response, html){ 
-                    if(!error){
-                        var $ = cheerio.load(html);
-
-                        //this possibly could be improved by finding out how to call functions on objects using $() to get it instaed of array[selector]
-                        $("tr").each(function(r, tr) { //loops through all trs in object
-                            var valuable = false;
-                            var nameSpan;
-                            $("td", tr).each(function(d, td) { //loops through all td children, only should be two
-                                if (valuable) { //valuable is true if label is found to be of use
-                                    comp[nameSpan] = $(td).text();
-                                } else {
-                                    nameSpan = $("span", this).text(); //gets namespan from first td, sees if its valuable information
-                                    if (relevantValues.includes(nameSpan)) {
-                                        valuable = true;
-                                    }
-                                }
-                            });
-                        });
-                        console.log("iterating");
-                        if ((comp["Total Debt"] == "N/A" && comp["Total Debt/Equity"] == "N/A") || (parseFloat(comp["Total Debt/Equity"]) < 20)) {
-                            ret.push(comp);
-                            console.log(ret.length);
-                        }
-
-                    } else {
-                        console.log('error');
-                    }
-
-                });
-            }
-        }], function (error, results) { ccb(false, ret);});*/
-
-
-}
+}*/
 
 function scrapeSymbols(ccb) { //will have initiate which reads from json and scrape which will read from nasdaq or w/e
     /*var tempCompanies = [{tag:"ALP^Q"}, {tag:"NBY"}];
@@ -108,7 +69,8 @@ function scrapeSymbols(ccb) { //will have initiate which reads from json and scr
             });
         }
         ccb(error);
-        filterCompanies(ccb,scrapedComps);
+        scrapedComps = null; //ATTEMPT AT FIXING MEMORY LEAK
+        //filterCompanies(ccb,scrapedComps);
     });
 
 }
@@ -126,7 +88,10 @@ function compCallback(error) { // only sets companies as new companies if no err
 }
 
 app.get("/stockScraper.js", function (req, res) {
-    main();
+    
+    console.log(process.env.DATABASE_URL);
+    var client = new pg.Client(process.env.DATABASE_URL);//"postgres://ubuntu:ubuntu@localhost:5432/ubuntu"
+    client.connect();
 });
 
 app.listen(app.get('port'), function() {
